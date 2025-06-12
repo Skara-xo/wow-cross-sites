@@ -11,6 +11,8 @@
 // @match        https://www.warcraftlogs.com/guild/*
 // @grant        none
 // @license      MIT
+// @downloadURL https://update.greasyfork.org/scripts/539215/WOW%20Cross%20Link%20%3A%20RaiderIO%2C%20WoWProgress%2C%20Warcraft%20Logs%20%28Characters%20%20Guilds%29.user.js
+// @updateURL https://update.greasyfork.org/scripts/539215/WOW%20Cross%20Link%20%3A%20RaiderIO%2C%20WoWProgress%2C%20Warcraft%20Logs%20%28Characters%20%20Guilds%29.meta.js
 // ==/UserScript==
 
 (function () {
