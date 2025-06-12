@@ -1,78 +1,79 @@
-# WOW Cross Link
+# WOW Cross Link Unified
 
-**Ajoute automatiquement des liens croisés entre Raider.IO, WoWProgress et Warcraft Logs**  
-pour les pages de **personnages** et **guildes** de World of Warcraft.
+**Automatically adds cross-links between Raider.IO, WoWProgress, and Warcraft Logs**  
+for **characters** and **guilds** pages in World of Warcraft.
 
 ---
 
 ## Description
 
-Ce script Tampermonkey améliore la navigation entre les sites les plus utilisés par la communauté WoW pour consulter les performances des personnages et guildes :
+This Tampermonkey userscript enhances navigation between the most popular WoW community sites for viewing character and guild performance:
 
 - **Raider.IO**  
 - **WoWProgress**  
 - **Warcraft Logs**
 
-Il injecte des liens directs et des boutons stylés sur les pages de profils personnages et guildes, pour accéder rapidement aux pages correspondantes sur les autres plateformes.
+It injects direct links and styled buttons on character and guild profile pages, enabling quick access to corresponding pages on other platforms.
 
 ---
 
-## Fonctionnalités
+## Features
 
-- Ajout d’un lien WoWProgress sur les pages personnages de Raider.IO (support SPA : rafraîchissement dynamique).  
-- Ajout des liens Raider.IO et Warcraft Logs sur les pages personnages WoWProgress.  
-- Ajout d’un lien WoWProgress sur les pages personnages Warcraft Logs.  
-- Ajout d’un bouton WoWProgress stylé sur les pages guildes Raider.IO.  
-- Ajout des liens Raider.IO et Warcraft Logs sur les pages guildes WoWProgress.  
-- Ajout d’un bouton WoWProgress stylé dans la barre de navigation des guildes sur Warcraft Logs.  
-- Gestion des encodages/décodages des noms de royaumes et guildes.  
-- Prévention des doublons d’injection.  
-- Style uniforme et discret pour une intégration propre.
+- Adds a WoWProgress link on Raider.IO character pages (supports SPA with dynamic content updates).  
+- Adds Raider.IO and Warcraft Logs links on WoWProgress character pages.  
+- Adds a WoWProgress link on Warcraft Logs character pages.  
+- Adds a styled WoWProgress button on Raider.IO guild pages.  
+- Adds Raider.IO and Warcraft Logs links on WoWProgress guild pages.  
+- Adds a styled WoWProgress button in the navigation bar on Warcraft Logs guild pages.  
+- Handles encoding/decoding of realm and guild names.  
+- Prevents duplicate injections.  
+- Uniform and discreet styling for seamless integration.
 
 ---
 
 ## Installation
 
-1. Installer [Tampermonkey](https://www.tampermonkey.net/) (ou équivalent) dans votre navigateur.  
-2. Créer un nouveau script utilisateur.  
-3. Copier-coller le contenu du script dans l’éditeur.  
-4. Enregistrer et activer le script.  
-5. Visiter les pages supportées pour voir les liens apparaître automatiquement.
+1. Install [Tampermonkey](https://www.tampermonkey.net/) (or a compatible userscript manager) in your browser.  
+2. Create a new userscript.  
+3. Copy and paste the script content into the editor.  
+4. Save and enable the script.  
+5. Visit supported pages to see the links automatically injected.
 
 ---
 
-## Sites supportés
+## Supported Sites
 
-- `https://raider.io/characters/*` (personnages Raider.IO)  
-- `https://raider.io/guilds/*` (guildes Raider.IO)  
-- `https://www.wowprogress.com/character/*` (personnages WoWProgress)  
-- `https://www.wowprogress.com/guild/*` (guildes WoWProgress)  
-- `https://www.warcraftlogs.com/character/*` (personnages Warcraft Logs)  
-- `https://www.warcraftlogs.com/guild/*` (guildes Warcraft Logs)
-
----
-
-## Exemple d’usage
-
-Sur la page d’un personnage Raider.IO, un petit icône WoWProgress apparaît en haut à droite permettant d’ouvrir rapidement sa page WoWProgress.
-
-Sur la page d’une guilde Warcraft Logs, un bouton WoWProgress est ajouté dans la barre de navigation, avec logo et nom, pour faciliter le suivi croisé.
+- `https://raider.io/characters/*` (Raider.IO characters)  
+- `https://raider.io/guilds/*` (Raider.IO guilds)  
+- `https://www.wowprogress.com/character/*` (WoWProgress characters)  
+- `https://www.wowprogress.com/guild/*` (WoWProgress guilds)  
+- `https://www.warcraftlogs.com/character/*` (Warcraft Logs characters)  
+- `https://www.warcraftlogs.com/guild/*` (Warcraft Logs guilds)
 
 ---
 
-## Contribution
+## Usage Example
 
-Contributions, suggestions et corrections sont les bienvenues !  
-N’hésitez pas à ouvrir une issue ou une Pull Request sur GitHub.
+On a Raider.IO character page, a small WoWProgress icon appears at the top right, allowing quick access to the character's WoWProgress page.
 
----
-
-## Licence
-
-MIT License - libre d’utilisation et modification.
+On a Warcraft Logs guild page, a WoWProgress button with logo and label is added to the navigation bar to facilitate cross-site tracking.
 
 ---
 
-## Auteur
+## Contributing
 
-Script développé par Skara-xo + IA
+Contributions, suggestions, and bug reports are welcome!  
+Feel free to open an issue or submit a Pull Request on GitHub.
+
+---
+
+## License
+
+MIT License — free to use and modify.
+
+---
+
+## Author
+
+Script developed by **YourName or YourHandle**  
+Contact: (optional)
