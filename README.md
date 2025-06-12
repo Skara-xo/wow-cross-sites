@@ -1,4 +1,4 @@
-# WOW Cross Link Unified
+# WOW Cross Link
 
 **Ajoute automatiquement des liens croisés entre Raider.IO, WoWProgress et Warcraft Logs**  
 pour les pages de **personnages** et **guildes** de World of Warcraft.
@@ -75,5 +75,4 @@ MIT License - libre d’utilisation et modification.
 
 ## Auteur
 
-Script développé par **TonNom ou Pseudo**  
-Contact : (facultatif)
+Script développé par Skara-xo + IA
