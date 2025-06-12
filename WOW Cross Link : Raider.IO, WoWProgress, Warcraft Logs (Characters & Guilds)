@@ -10,6 +10,7 @@
 // @match        https://www.warcraftlogs.com/character/*
 // @match        https://www.warcraftlogs.com/guild/*
 // @grant        none
+// @license      MIT
 // ==/UserScript==
 
 (function () {
