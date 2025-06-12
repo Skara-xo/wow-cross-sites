@@ -75,5 +75,4 @@ MIT License — free to use and modify.
 
 ## Author
 
-Script developed by **YourName or YourHandle**  
-Contact: (optional)
+Script by Skara-xo + AI
