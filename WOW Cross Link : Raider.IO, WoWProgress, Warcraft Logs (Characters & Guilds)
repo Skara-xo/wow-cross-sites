@@ -1,0 +1,369 @@
+// ==UserScript==
+// @name         WOW Cross Link : Raider.IO, WoWProgress, Warcraft Logs (Characters & Guilds)
+// @namespace    https://tampermonkey.net/
+// @version      3.0
+// @description  Ajoute liens croisés entre Raider.IO, WoWProgress, Warcraft Logs pour personnages et guildes, avec support SPA Raider.IO et bouton stylé Warcraft Logs guild.
+// @match        https://raider.io/characters/*
+// @match        https://raider.io/guilds/*
+// @match        https://www.wowprogress.com/character/*
+// @match        https://www.wowprogress.com/guild/*
+// @match        https://www.warcraftlogs.com/character/*
+// @match        https://www.warcraftlogs.com/guild/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    // --- Injection CSS commune ---
+    const style = document.createElement('style');
+    style.textContent = `
+        /* WoWProgress icon links */
+        a.wowprogress-link, a#wowprogress-link {
+            width: 24px !important;
+            height: 24px !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+            margin-left: 8px !important;
+            background-size: 24px 24px !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            border-radius: 3px !important;
+        }
+        a#wowprogress-link {
+            margin-left: 12px !important;
+        }
+        /* Warcraft Logs guild WowProgress button styles */
+        a.guild-navigation__related-link {
+            --talent-tree-node-width: 1rem;
+            --header-desktop-height: 120px;
+            text-shadow: 1px 1px 1px #000;
+            -webkit-tap-highlight-color: transparent;
+            list-style: none;
+            direction: ltr;
+            padding: 6px 12px;
+            color: #aebbc0;
+            font-size: 13px;
+            line-height: 17px;
+            font-family: Avenir,sans-serif;
+            text-decoration: none;
+            position: relative;
+            white-space: nowrap;
+            box-sizing: content-box;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-gap: .5rem;
+            align-items: center;
+        }
+        a.guild-navigation__related-link-icon {
+            width: 24px;
+            height: 24px;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // --- Utilitaires communs ---
+    function parseCharacterInfo(path) {
+        const match = path.match(/^\/character\/([^/]+)\/([^/]+)\/([^/?#]+)/);
+        if (!match) return null;
+        return { region: match[1], realm: match[2], name: match[3] };
+    }
+
+    function parseCharacterInfoFromRaiderIO() {
+        const match = location.pathname.match(/^\/characters\/([^/]+)\/([^/]+)\/([^/?#]+)/);
+        if (!match) return null;
+        return { region: match[1], realm: match[2], name: match[3] };
+    }
+
+    function parseGuildInfo(path) {
+        const parts = path.split('/');
+        if (parts.length < 5) return null;
+        return {
+            region: parts[2],
+            server: parts[3],
+            guildRaw: parts.slice(4).join('/'),
+            guildDecoded: decodeURIComponent(parts.slice(4).join('/')).toLowerCase()
+        };
+    }
+
+    function createTextLink(url, text, id) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent = text;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.style.color = '#0070dd';
+        a.style.textDecoration = 'underline';
+        if (id) a.id = id;
+        return a;
+    }
+
+    function createIconLink(url, title) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.title = title;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.className = 'wowprogress-link';
+        a.style.backgroundImage = 'url(https://www.wowprogress.com/favicon.ico)';
+        return a;
+    }
+
+    function createWowProgressButton(region, server, guildName) {
+        const url = `https://www.wowprogress.com/guild/${region}/${server}/${encodeURIComponent(guildName)}`;
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.className = 'guild-navigation__related-link';
+
+        a.style.cssText = `
+            --talent-tree-node-width: 1rem;
+            --header-desktop-height: 120px;
+            text-shadow: 1px 1px 1px #000;
+            -webkit-tap-highlight-color: transparent;
+            list-style: none;
+            direction: ltr;
+            padding: 6px 12px;
+            color: #aebbc0;
+            font-size: 13px;
+            line-height: 17px;
+            font-family: Avenir,sans-serif;
+            text-decoration: none;
+            position: relative;
+            white-space: nowrap;
+            box-sizing: content-box;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-gap: .5rem;
+            align-items: center;
+        `;
+
+        const img = document.createElement('img');
+        img.src = 'https://www.wowprogress.com/favicon.ico';
+        img.alt = 'WowProgress';
+        img.className = 'guild-navigation__related-link-icon';
+
+        const span = document.createElement('span');
+        span.className = 'guild-navigation__related-link-text';
+        span.textContent = 'WowProgress';
+
+        a.appendChild(img);
+        a.appendChild(span);
+        return a;
+    }
+
+    // --- Injection fonction pour personnages Raider.IO ---
+    function injectIntoRaiderIOCharacter() {
+        const info = parseCharacterInfoFromRaiderIO();
+        if (!info) return;
+
+        const targetUrl = `https://www.wowprogress.com/character/${info.region}/${info.realm}/${info.name}`;
+
+        const interval = setInterval(() => {
+            const rightContainer = document.querySelector('header.slds-text-body--large .slds-float--right');
+            if (rightContainer && !document.getElementById('wowprogress-link')) {
+                const link = createIconLink(targetUrl, 'Voir sur WoWProgress');
+                link.id = 'wowprogress-link';
+                rightContainer.appendChild(link);
+                clearInterval(interval);
+            }
+        }, 300);
+    }
+
+    // --- Injection pour personnages WoWProgress ---
+    function injectIntoWoWProgressCharacter() {
+        const info = parseCharacterInfo(location.pathname);
+        if (!info) return;
+
+        const raiderUrl = `https://raider.io/characters/${info.region}/${info.realm}/${info.name}`;
+        const logsUrl = `https://www.warcraftlogs.com/character/${info.region}/${info.realm}/${info.name}`;
+
+        const interval = setInterval(() => {
+            const armoryLink = document.querySelector('a.armoryLink');
+            if (armoryLink && !document.getElementById('raiderio-link')) {
+                const sep1 = document.createTextNode(' | ');
+                const sep2 = document.createTextNode(' | ');
+                const raiderLink = createTextLink(raiderUrl, 'Raider.IO', 'raiderio-link');
+                const logsLink = createTextLink(logsUrl, 'WarcraftLogs', 'wcl-link');
+
+                const parent = armoryLink.parentNode;
+                parent.insertBefore(sep1, armoryLink.nextSibling);
+                parent.insertBefore(raiderLink, sep1.nextSibling);
+                parent.insertBefore(sep2, raiderLink.nextSibling);
+                parent.insertBefore(logsLink, sep2.nextSibling);
+
+                clearInterval(interval);
+            }
+        }, 300);
+    }
+
+    // --- Injection pour personnages Warcraft Logs ---
+    function injectIntoWarcraftLogsCharacter() {
+        const info = parseCharacterInfo(location.pathname);
+        if (!info) return;
+
+        const wpUrl = `https://www.wowprogress.com/character/${info.region}/${info.realm}/${info.name}`;
+
+        const interval = setInterval(() => {
+            const container = document.querySelector('#gear-box-external-links');
+            if (container && !document.getElementById('wowprogress-icon-link')) {
+                const a = document.createElement('a');
+                a.href = wpUrl;
+                a.target = '_blank';
+                a.id = 'wowprogress-icon-link';
+                a.innerHTML = `<img class="external-icon" title="View WoWProgress Page" src="https://www.wowprogress.com/favicon.ico" alt="View WoWProgress Page">`;
+                container.appendChild(a);
+                clearInterval(interval);
+            }
+        }, 300);
+    }
+
+    // --- Injection pour guildes Raider.IO ---
+    async function addWowProgressButtonOnRaiderIOGuild() {
+        function waitForElement(selector, timeout = 10000) {
+            return new Promise((resolve, reject) => {
+                const intervalTime = 200;
+                let timeSpent = 0;
+                const interval = setInterval(() => {
+                    const el = document.querySelector(selector);
+                    if (el) {
+                        clearInterval(interval);
+                        resolve(el);
+                    }
+                    timeSpent += intervalTime;
+                    if (timeSpent >= timeout) {
+                        clearInterval(interval);
+                        reject('Timeout waiting for element');
+                    }
+                }, intervalTime);
+            });
+        }
+
+        try {
+            const th = await waitForElement('th.slds-text-body--large.slds-clearfix');
+            const rightDiv = th.querySelector('div.slds-show--inline-block.slds-float--right');
+            if (!rightDiv) return;
+
+            const info = parseGuildInfo(window.location.pathname);
+            if (!info) return;
+
+            const wowprogressUrl = `https://www.wowprogress.com/guild/${info.region}/${info.server}/${encodeURIComponent(info.guildDecoded)}`;
+
+            if (rightDiv.querySelector('a.wowprogress-link')) return;
+
+            const link = createIconLink(wowprogressUrl, "Voir sur WowProgress");
+            rightDiv.appendChild(link);
+
+        } catch (e) {
+            console.log('Erreur dans addWowProgressButtonOnRaiderIOGuild:', e);
+        }
+    }
+
+    // --- Injection pour guildes WoWProgress ---
+    function injectLinksOnWowProgressGuild() {
+        const info = parseGuildInfo(location.pathname);
+        if (!info) return;
+
+        // Le nom guilde formaté pour Raider.IO / Warcraft Logs (remplacement "-" par espace)
+        const raiderGuildName = decodeURIComponent(info.guildRaw).replace(/-/g, ' ');
+
+        const raiderUrl = `https://raider.io/guilds/${info.region}/${info.server}/${encodeURIComponent(raiderGuildName)}`;
+        const wclUrl = `https://www.warcraftlogs.com/guild/${info.region}/${info.server}/${encodeURIComponent(raiderGuildName)}`;
+
+        const armoryLink = document.querySelector('a.armoryLink');
+        if (!armoryLink) return;
+
+        const parent = armoryLink.parentNode;
+
+        if (document.getElementById('raiderio-link')) return;
+
+        const sep1 = document.createTextNode(' | ');
+        const raiderLink = createTextLink(raiderUrl, 'Raider.IO', 'raiderio-link');
+
+        const sep2 = document.createTextNode(' | ');
+        const wclLink = createTextLink(wclUrl, 'Warcraft Logs', 'wcl-link');
+
+        parent.insertBefore(sep1, armoryLink.nextSibling);
+        parent.insertBefore(raiderLink, sep1.nextSibling);
+        parent.insertBefore(sep2, raiderLink.nextSibling);
+        parent.insertBefore(wclLink, sep2.nextSibling);
+    }
+
+    // --- Injection pour guildes Warcraft Logs (bouton stylé avant Armory) ---
+    function injectWowProgressButtonBeforeArmoryOnWCLGuild() {
+        const info = parseGuildInfo(window.location.pathname);
+        if (!info) return;
+
+        const navUl = document.querySelector('div.navigation > ul.filter-bar-menu');
+        if (!navUl) return;
+
+        // Eviter doublons
+        if (Array.from(navUl.querySelectorAll('a')).some(a => a.href.includes('wowprogress.com'))) return;
+
+        const armoryLi = Array.from(navUl.children).find(li =>
+            li.classList.contains('navigation__end-link') &&
+            li.querySelector('a[href*="worldofwarcraft.com"]')
+        );
+        if (!armoryLi) return;
+
+        const newLi = document.createElement('li');
+        newLi.className = 'navigation__end-link';
+        newLi.appendChild(createWowProgressButton(info.region, info.server, info.guildDecoded));
+
+        navUl.insertBefore(newLi, armoryLi);
+    }
+
+    // --- Gestion SPA sur Raider.IO: observe mutations pour reinjecter liens persos ---
+    function observeRaiderIOSPA() {
+        if (!location.pathname.startsWith('/characters/')) return;
+
+        const targetNode = document.querySelector('main');
+        if (!targetNode) return;
+
+        const config = { childList: true, subtree: true };
+
+        const callback = (mutationsList, observer) => {
+            for (const mutation of mutationsList) {
+                if (mutation.addedNodes.length > 0) {
+                    injectIntoRaiderIOCharacter();
+                }
+            }
+        };
+
+        const observer = new MutationObserver(callback);
+        observer.observe(targetNode, config);
+    }
+
+    // --- Main runner ---
+    function main() {
+        const url = location.href;
+
+        if (url.includes('raider.io/characters/')) {
+            injectIntoRaiderIOCharacter();
+            observeRaiderIOSPA();
+
+        } else if (url.includes('raider.io/guilds/')) {
+            addWowProgressButtonOnRaiderIOGuild();
+
+        } else if (url.includes('wowprogress.com/character/')) {
+            injectIntoWoWProgressCharacter();
+
+        } else if (url.includes('wowprogress.com/guild/')) {
+            injectLinksOnWowProgressGuild();
+
+        } else if (url.includes('warcraftlogs.com/character/')) {
+            injectIntoWarcraftLogsCharacter();
+
+        } else if (url.includes('warcraftlogs.com/guild/')) {
+            injectWowProgressButtonBeforeArmoryOnWCLGuild();
+        }
+    }
+
+    // Run main after DOM ready
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', main);
+    } else {
+        main();
+    }
+})();
