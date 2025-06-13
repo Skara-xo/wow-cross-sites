@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WOW Cross Link : Raider.IO, WoWProgress, Warcraft Logs (Characters & Guilds)
 // @namespace    https://tampermonkey.net/
-// @version      3.0
+// @version      3.1
 // @description  Ajoute liens croisés entre Raider.IO, WoWProgress, Warcraft Logs pour personnages et guildes, avec support SPA Raider.IO et bouton stylé Warcraft Logs guild.
 // @match        https://raider.io/characters/*
 // @match        https://raider.io/guilds/*
