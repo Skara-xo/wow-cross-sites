@@ -1,0 +1,112 @@
+// ==UserScript==
+// @name         WOW cross sites - Warcraftlogs -> WoWProgress
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Ajoute un lien WoWProgress sur les pages personnage et guilde de Warcraft Logs avec favicon intégré.
+// @match        https://www.warcraftlogs.com/character/*
+// @match        https://www.warcraftlogs.com/guild/*
+// @license      MIT
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    const WOWPROGRESS_ICON = 'https://www.wowprogress.com/favicon.ico';
+
+    const capitalizeFirst = str => str ? str[0].toUpperCase() + str.slice(1) : '';
+
+    const createLink = (url, imgClass, textClass, text) => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+
+        const img = document.createElement('img');
+        img.src = WOWPROGRESS_ICON;
+        img.alt = 'WoWProgress';
+        img.className = imgClass;
+
+        a.appendChild(img);
+        if (text) {
+            const span = document.createElement('span');
+            span.textContent = text;
+            span.className = textClass;
+            a.appendChild(span);
+        }
+
+        return a;
+    };
+
+    const addCharLink = () => {
+        const charLink = document.querySelector('#character-name a.character-name-link');
+        const serverLink = document.querySelector('#guild-and-server a#server-link');
+        const container = document.querySelector('#gear-box-external-links');
+        if (!charLink || !serverLink || !container) return;
+
+        const charName = encodeURIComponent(capitalizeFirst(charLink.textContent.trim()));
+        const match = serverLink.textContent.trim().match(/^(.+)\s+\((.+)\)$/);
+        if (!match) return;
+
+        const server = match[1].toLowerCase().replace(/\s+/g, '-');
+        const region = match[2].toLowerCase();
+        const url = `https://www.wowprogress.com/character/${region}/${server}/${charName}`;
+
+        if (!container.querySelector(`a[href="${url}"]`)) {
+            const a = createLink(url, 'external-icon');
+            a.style.marginLeft = '6px';
+            a.style.width = '20px';
+            a.style.height = '20px';
+            container.appendChild(a);
+        }
+    };
+
+    const addGuildLink = () => {
+        const waitFor = (selectors, callback, timeout = 10000) => {
+            const start = Date.now();
+            const interval = setInterval(() => {
+                const els = selectors.map(s => document.querySelector(s));
+                if (els.every(Boolean)) {
+                    clearInterval(interval);
+                    callback(...els);
+                } else if (Date.now() - start > timeout) {
+                    clearInterval(interval);
+                }
+            }, 300);
+        };
+
+        const getNavMenu = () =>
+            document.querySelector('.navigation ul.filter-bar-menu') ||
+            document.querySelector('.guild-header__child-guilds .navigation ul.filter-bar-menu');
+
+        waitFor(['.guild-header__name', '.guild-header__region-and-server a'], (nameEl, regionEl) => {
+            const nav = getNavMenu();
+            if (!nav || [...nav.querySelectorAll('a')].some(a => a.href.includes('wowprogress.com'))) return;
+
+            const guild = nameEl.textContent.trim().replace(/\s+/g, ' ');
+            const match = regionEl.textContent.trim().match(/^([A-Z]{2})\s*-\s*(.+)$/i);
+            if (!match) return;
+
+            const region = match[1].toLowerCase();
+            const server = match[2].trim().toLowerCase().replace(/[\s']/g, '-');
+            const guildUrl = guild.replace(/ /g, '+');
+            const url = `https://www.wowprogress.com/guild/${region}/${server}/${guildUrl}`;
+
+            const armoryLi = [...nav.querySelectorAll('li')].find(li =>
+                li.textContent.includes('Armory') &&
+                li.querySelector('a')?.href.includes('worldofwarcraft.com')
+            );
+            if (!armoryLi) return;
+
+            const li = document.createElement('li');
+            li.className = 'navigation__end-link';
+            const link = createLink(url, 'guild-navigation__related-link-icon', 'guild-navigation__related-link-text', 'WowProgress');
+            link.className = 'guild-navigation__related-link';
+            li.appendChild(link);
+            armoryLi.after(li);
+        });
+    };
+
+    if (location.pathname.startsWith('/character/')) addCharLink();
+    if (location.pathname.startsWith('/guild/')) addGuildLink();
+})();
