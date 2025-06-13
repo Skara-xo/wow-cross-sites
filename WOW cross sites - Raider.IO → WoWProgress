@@ -1,0 +1,75 @@
+// ==UserScript==
+// @name         WOW cross sites - Raider.IO → WoWProgress
+// @namespace    https://tampermonkey.net/
+// @version      1.0
+// @description  Ajoute une icône WoWProgress sur les pages Raider.IO (perso & guilde)
+// @match        https://raider.io/characters/*
+// @match        https://raider.io/guilds/*
+// @license      MIT
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    function formatRealm(realm) {
+        // Ajoute un tiret avant un chiffre ou entre deux mots collés (ex: zuljin → zul-jin, area52 → area-52)
+        return realm
+            .replace(/([a-z])([A-Z])/g, '$1-$2')   // Mot collés
+            .replace(/([a-zA-Z])(\d)/g, '$1-$2')   // Lettres + chiffres
+            .toLowerCase();
+    }
+
+    function createIconLink(url, title) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.title = title;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.className = 'slds-avatar slds-avatar--small slds-m-left--large rio-profile-links wowprogress';
+
+        const icon = document.createElement('img');
+        icon.src = 'https://www.wowprogress.com/favicon.ico';
+        icon.alt = 'WoWProgress';
+        icon.style.width = '100%';
+        icon.style.height = '100%';
+        icon.style.borderRadius = '50%';
+
+        link.appendChild(icon);
+        return link;
+    }
+
+    const interval = setInterval(() => {
+        const path = window.location.pathname;
+        const parts = path.split('/');
+        const type = parts[1]; // "characters" ou "guilds"
+        const region = parts[2];
+        const rawRealm = parts[3];
+        const name = parts[4];
+        const realm = formatRealm(rawRealm);
+
+        let container = null;
+        let targetSelector = '';
+
+        if (type === 'characters') {
+            targetSelector = 'header.slds-clearfix .slds-float--right';
+        } else if (type === 'guilds') {
+            targetSelector = 'th.slds-clearfix .slds-float--right';
+        } else {
+            return;
+        }
+
+        container = document.querySelector(targetSelector);
+        if (!container) return;
+
+        clearInterval(interval);
+
+        const wpURL =
+            type === 'characters'
+                ? `https://www.wowprogress.com/character/${region}/${realm}/${name}`
+                : `https://www.wowprogress.com/guild/${region}/${realm}/${name}`;
+
+        const wpIcon = createIconLink(wpURL, 'Voir sur WoWProgress');
+        container.appendChild(wpIcon);
+    }, 300);
+})();
